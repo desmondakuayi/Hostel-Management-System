@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HostelHub — Digital Student Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0D2137;
+    --navy-mid: #1A3550;
+    --navy-light: #2C4D6E;
+    --accent: #00C49A;
+    --accent-dim: #009B7A;
+    --accent-glow: rgba(0,196,154,0.15);
+    --warn: #F5A623;
+    --danger: #E8514A;
+    --surface: #F7F9FC;
+    --card: #ffffff;
+    --border: rgba(13,33,55,0.1);
+    --text: #0D2137;
+    --text-muted: #5E7A95;
+    --text-light: #98B0C4;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--surface); color: var(--text); min-height: 100vh; }
+
+  /* LAYOUT */
+  .app { display: flex; min-height: 100vh; }
+  .sidebar { width: 240px; background: var(--navy); flex-shrink: 0; display: flex; flex-direction: column; position: fixed; height: 100vh; top: 0; left: 0; z-index: 100; transition: transform .3s; }
+  .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+  .topbar { height: 60px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 16px; position: sticky; top: 0; z-index: 50; }
+  .content { padding: 28px 28px; flex: 1; }
+
+  /* SIDEBAR */
+  .sidebar-logo { padding: 20px 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .logo-badge { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 36px; height: 36px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+  .logo-icon svg { width: 20px; height: 20px; fill: white; }
+  .logo-name { font-family: 'Syne', sans-serif; font-weight: 800; color: white; font-size: 18px; letter-spacing: -0.5px; }
+  .logo-sub { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 1px; }
+
+  .sidebar-section { padding: 16px 12px 4px; }
+  .sidebar-label { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: rgba(255,255,255,0.3); padding: 0 8px 8px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; cursor: pointer; color: rgba(255,255,255,0.55); font-size: 14px; font-weight: 400; transition: all .2s; margin-bottom: 2px; user-select: none; }
+  .nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
+  .nav-item.active { background: var(--accent-glow); color: var(--accent); }
+  .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .nav-badge { margin-left: auto; background: var(--danger); color: white; border-radius: 20px; font-size: 10px; font-weight: 600; padding: 1px 7px; }
+  .nav-badge.green { background: var(--accent); }
+
+  .sidebar-bottom { margin-top: auto; padding: 16px 12px; border-top: 1px solid rgba(255,255,255,0.08); }
+  .user-card { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
+  .user-card:hover { background: rgba(255,255,255,0.05); }
+  .avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; flex-shrink: 0; }
+  .avatar.student { background: rgba(0,196,154,0.2); color: var(--accent); }
+  .avatar.admin { background: rgba(245,166,35,0.2); color: var(--warn); }
+  .user-name { font-size: 13px; color: rgba(255,255,255,0.8); font-weight: 500; }
+  .user-role { font-size: 11px; color: rgba(255,255,255,0.35); }
+
+  /* TOPBAR */
+  .topbar-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 17px; color: var(--text); }
+  .topbar-spacer { flex: 1; }
+  .topbar-search { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; font-size: 13px; color: var(--text-muted); cursor: pointer; }
+  .topbar-search svg { width: 15px; height: 15px; }
+  .notif-btn { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
+  .notif-dot { width: 8px; height: 8px; background: var(--danger); border-radius: 50%; position: absolute; top: 6px; right: 6px; border: 2px solid white; }
+  .view-toggle { display: flex; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .toggle-btn { padding: 6px 14px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; background: transparent; color: var(--text-muted); transition: all .2s; }
+  .toggle-btn.active { background: var(--navy); color: white; }
+
+  /* PAGE SYSTEM */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* CARDS */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px; }
+  .card-title { font-size: 13px; color: var(--text-muted); font-weight: 500; margin-bottom: 6px; }
+  .card-value { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 28px; color: var(--text); line-height: 1; }
+  .card-delta { font-size: 12px; margin-top: 6px; }
+  .card-delta.up { color: var(--accent); }
+  .card-delta.warn { color: var(--warn); }
+
+  /* STAT GRID */
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+
+  /* SECTION HEADER */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .section-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; }
+  .see-all { font-size: 13px; color: var(--accent); cursor: pointer; font-weight: 500; }
+
+  /* TABLE */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table th { text-align: left; padding: 10px 14px; font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--text-muted); font-weight: 500; border-bottom: 1px solid var(--border); }
+  .data-table td { padding: 12px 14px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: var(--surface); }
+
+  /* BADGES */
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge.green { background: rgba(0,196,154,0.12); color: var(--accent-dim); }
+  .badge.yellow { background: rgba(245,166,35,0.12); color: #C07800; }
+  .badge.red { background: rgba(232,81,74,0.12); color: var(--danger); }
+  .badge.blue { background: rgba(29,99,226,0.1); color: #1D63E2; }
+  .badge.gray { background: rgba(94,122,149,0.1); color: var(--text-muted); }
+
+  /* GRID 2-COL */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  /* ANNOUNCEMENT CARD */
+  .announce-item { padding: 14px 0; border-bottom: 1px solid var(--border); display: flex; gap: 14px; }
+  .announce-item:last-child { border-bottom: none; }
+  .announce-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .announce-icon.navy { background: rgba(13,33,55,0.08); }
+  .announce-icon.green { background: rgba(0,196,154,0.12); }
+  .announce-icon.yellow { background: rgba(245,166,35,0.12); }
+  .announce-icon svg { width: 18px; height: 18px; }
+  .announce-title { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+  .announce-meta { font-size: 11px; color: var(--text-muted); }
+
+  /* MAINTENANCE */
+  .request-item { padding: 14px 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 14px; }
+  .request-item:last-child { border-bottom: none; }
+  .req-number { font-size: 11px; font-weight: 600; color: var(--text-muted); width: 36px; }
+  .req-info { flex: 1; }
+  .req-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+  .req-meta { font-size: 11px; color: var(--text-muted); }
+
+  /* FOOD MARKETPLACE */
+  .food-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .food-card { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; cursor: pointer; transition: all .2s; }
+  .food-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(13,33,55,0.1); border-color: var(--accent); }
+  .food-img { height: 110px; display: flex; align-items: center; justify-content: center; font-size: 40px; }
+  .food-img.jollof { background: linear-gradient(135deg,#FFF3E0,#FFE0B2); }
+  .food-img.waakye { background: linear-gradient(135deg,#E8F5E9,#C8E6C9); }
+  .food-img.banku { background: linear-gradient(135deg,#FFF8E1,#FFF3E0); }
+  .food-img.rice { background: linear-gradient(135deg,#E3F2FD,#BBDEFB); }
+  .food-img.kenkey { background: linear-gradient(135deg,#FCE4EC,#F8BBD0); }
+  .food-img.fried { background: linear-gradient(135deg,#F3E5F5,#E1BEE7); }
+  .food-info { padding: 12px; }
+  .food-name { font-size: 13px; font-weight: 600; }
+  .food-vendor { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
+  .food-footer { display: flex; align-items: center; justify-content: space-between; }
+  .food-price { font-size: 14px; font-weight: 700; color: var(--navy); }
+  .add-btn { width: 26px; height: 26px; background: var(--navy); border-radius: 6px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; color: white; font-size: 16px; transition: background .2s; }
+  .add-btn:hover { background: var(--accent); }
+
+  /* ROOM GRID */
+  .room-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+  .room-cell { border-radius: 8px; padding: 10px 8px; text-align: center; cursor: pointer; transition: all .2s; border: 1.5px solid transparent; }
+  .room-cell:hover { transform: scale(1.05); }
+  .room-cell.occupied { background: rgba(13,33,55,0.07); border-color: rgba(13,33,55,0.12); }
+  .room-cell.available { background: rgba(0,196,154,0.1); border-color: rgba(0,196,154,0.2); }
+  .room-cell.maintenance { background: rgba(245,166,35,0.1); border-color: rgba(245,166,35,0.2); }
+  .room-cell.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
+  .room-num { font-size: 12px; font-weight: 700; }
+  .room-type { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+  /* PROGRESS BAR */
+  .progress-track { height: 6px; background: var(--surface); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+  .progress-fill { height: 100%; border-radius: 3px; transition: width .6s ease; }
+  .progress-fill.green { background: var(--accent); }
+  .progress-fill.warn { background: var(--warn); }
+  .progress-fill.navy { background: var(--navy); }
+
+  /* CHART BARS */
+  .bar-chart { display: flex; align-items: flex-end; gap: 10px; height: 120px; padding-top: 12px; }
+  .bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; }
+  .bar { width: 100%; border-radius: 4px 4px 0 0; transition: height .6s ease; min-height: 4px; }
+  .bar.navy { background: var(--navy); }
+  .bar.accent { background: var(--accent); }
+  .bar-label { font-size: 10px; color: var(--text-muted); }
+
+  /* STUDENT DASHBOARD ELEMENTS */
+  .welcome-banner { background: var(--navy); border-radius: 14px; padding: 24px 28px; color: white; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; }
+  .welcome-text h2 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; }
+  .welcome-text p { font-size: 13px; color: rgba(255,255,255,0.55); margin-top: 4px; }
+  .room-tag { background: var(--accent-glow); border: 1px solid rgba(0,196,154,0.3); padding: 8px 14px; border-radius: 8px; font-size: 12px; color: var(--accent); font-weight: 600; text-align: center; }
+  .room-tag span { font-size: 20px; font-weight: 800; font-family: 'Syne', sans-serif; display: block; color: white; }
+
+  /* PAYMENT CARD */
+  .payment-overview { display: flex; align-items: center; gap: 16px; }
+  .donut { width: 80px; height: 80px; flex-shrink: 0; }
+  .payment-info h3 { font-size: 22px; font-family: 'Syne', sans-serif; font-weight: 800; }
+  .payment-info p { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+  .pay-btn { margin-top: 12px; background: var(--navy); color: white; border: none; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background .2s; }
+  .pay-btn:hover { background: var(--accent); }
+
+  /* NOTIFICATION ITEMS */
+  .notif-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .notif-item:last-child { border-bottom: none; }
+  .notif-dot-sm { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .notif-dot-sm.green { background: var(--accent); }
+  .notif-dot-sm.red { background: var(--danger); }
+  .notif-dot-sm.yellow { background: var(--warn); }
+  .notif-text { font-size: 13px; line-height: 1.5; }
+  .notif-time { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+  /* UTILITY */
+  .flex { display: flex; }
+  .flex-col { flex-direction: column; }
+  .items-center { align-items: center; }
+  .gap-2 { gap: 8px; }
+  .gap-3 { gap: 12px; }
+  .gap-4 { gap: 16px; }
+  .mt-1 { margin-top: 4px; }
+  .mt-2 { margin-top: 8px; }
+  .mt-4 { margin-top: 16px; }
+  .mb-4 { margin-bottom: 16px; }
+  .w-full { width: 100%; }
+  .text-sm { font-size: 13px; }
+  .text-xs { font-size: 11px; }
+  .text-muted { color: var(--text-muted); }
+  .font-bold { font-weight: 700; }
+  .font-med { font-weight: 500; }
+  .col-span-2 { grid-column: span 2; }
+
+  /* ACTION BUTTON */
+  .btn { padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 6px; transition: all .2s; font-family: 'DM Sans', sans-serif; }
+  .btn-primary { background: var(--navy); color: white; }
+  .btn-primary:hover { background: var(--navy-light); }
+  .btn-accent { background: var(--accent); color: white; }
+  .btn-accent:hover { background: var(--accent-dim); }
+  .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn-outline:hover { background: var(--surface); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+  /* FORM */
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 5px; display: block; }
+  .form-input { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--text); background: var(--card); outline: none; transition: border-color .2s; }
+  .form-input:focus { border-color: var(--accent); }
+  .form-select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--text); background: var(--card); outline: none; }
+  .form-textarea { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--text); resize: vertical; background: var(--card); outline: none; }
+  .form-textarea:focus { border-color: var(--accent); }
+
+  /* EVENT CARDS */
+  .event-card { border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; gap: 14px; align-items: flex-start; transition: all .2s; cursor: pointer; }
+  .event-card:hover { border-color: var(--accent); }
+  .event-date-box { background: var(--navy); border-radius: 8px; padding: 8px 10px; text-align: center; flex-shrink: 0; min-width: 44px; }
+  .event-day { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; color: white; line-height: 1; }
+  .event-month { font-size: 10px; color: rgba(255,255,255,0.5); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+  .event-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .event-loc { font-size: 12px; color: var(--text-muted); }
+  .event-time { font-size: 11px; color: var(--accent); font-weight: 500; margin-top: 4px; }
+
+  /* OCCUPANCY LEGEND */
+  .legend { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--navy); color: white; padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 500; display: none; align-items: center; gap: 10px; z-index: 999; box-shadow: 0 8px 32px rgba(13,33,55,0.25); animation: slideUp .3s ease; }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .toast-icon { width: 20px; height: 20px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* Mobile hamburger - hidden on desktop */
+  .menu-toggle { display: none; }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-badge">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 3L2 9v13h8v-5h4v5h8V9L12 3zm0 2.2L20 10v10h-4v-5H8v5H4V10L12 5.2z"/></svg>
+      </div>
+      <div>
+        <div class="logo-name">HostelHub</div>
+        <div class="logo-sub">Elijah Manasseh</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="student-nav">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Student Portal</div>
+      <div class="nav-item active" onclick="showPage('student-home', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('marketplace', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/></svg>
+        Marketplace
+      </div>
+      <div class="nav-item" onclick="showPage('events', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Events
+        <span class="nav-badge green">3</span>
+      </div>
+      <div class="nav-item" onclick="showPage('maintenance', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0119.07 19.07"/><path d="M4.93 4.93A10 10 0 004.93 19.07"/></svg>
+        Maintenance
+        <span class="nav-badge">2</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Management</div>
+      <div class="nav-item" onclick="switchToAdmin()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Admin View
+      </div>
+    </div>
+  </div>
+
+  <div id="admin-nav" style="display:none;">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Management</div>
+      <div class="nav-item active" onclick="showPage('admin-home', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Overview
+      </div>
+      <div class="nav-item" onclick="showPage('students', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        Students
+      </div>
+      <div class="nav-item" onclick="showPage('rooms', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Rooms
+      </div>
+      <div class="nav-item" onclick="showPage('comms', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        Communications
+        <span class="nav-badge">5</span>
+      </div>
+      <div class="nav-item" onclick="showPage('finance', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        Finance
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Portal</div>
+      <div class="nav-item" onclick="switchToStudent()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Student View
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-bottom">
+    <div class="user-card" id="user-card-student">
+      <div class="avatar student">KA</div>
+      <div>
+        <div class="user-name">Kwame Asante</div>
+        <div class="user-role">Room 204 · Block B</div>
+      </div>
+    </div>
+    <div class="user-card" id="user-card-admin" style="display:none;">
+      <div class="avatar admin">EM</div>
+      <div>
+        <div class="user-name">Elijah Manasseh</div>
+        <div class="user-role">Hostel Manager</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="page-title">Student Dashboard</div>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Search…
+    </div>
+    <div class="notif-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+      <div class="notif-dot"></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- === STUDENT HOME === -->
+    <div class="page active" id="page-student-home">
+      <div class="welcome-banner">
+        <div class="welcome-text">
+          <h2>Welcome back, Kwame 👋</h2>
+          <p>Here's what's happening at your hostel today — Tuesday, June 2, 2026</p>
+        </div>
+        <div class="room-tag">
+          <span>204</span>
+          Block B · Single
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="card">
+          <div class="card-title">Balance Due</div>
+          <div class="card-value">GHc 850</div>
+          <div class="card-delta warn">⚠ Due in 12 days</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Paid This Year</div>
+          <div class="card-value">GHc 2,150</div>
+          <div class="card-delta up">✓ 72% settled</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Maintenance</div>
+          <div class="card-value">2</div>
+          <div class="card-delta warn">1 in progress</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Subscription</div>
+          <div class="card-value">Active</div>
+          <div class="card-delta up">✓ GHc 320 / yr</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="section-header">
+            <div class="section-title">Payment Overview</div>
+            <button class="pay-btn" onclick="showToast('Payment portal launched!')">Pay Now →</button>
+          </div>
+          <div class="payment-overview">
+            <svg class="donut" viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="32" fill="none" stroke="#F0F3F8" stroke-width="10"/>
+              <circle cx="40" cy="40" r="32" fill="none" stroke="#00C49A" stroke-width="10"
+                stroke-dasharray="143 58" stroke-dashoffset="24" stroke-linecap="round"/>
+              <text x="40" y="44" text-anchor="middle" font-size="13" font-weight="700" fill="#0D2137" font-family="Syne,sans-serif">72%</text>
+            </svg>
+            <div class="payment-info">
+              <h3>GHc 3,000</h3>
+              <p>Total annual fee · GHc 2,150 paid</p>
+              <div style="margin-top:10px;">
+                <div style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Breakdown</div>
+                <div class="flex items-center gap-2 mt-1">
+                  <div class="progress-track w-full"><div class="progress-fill green" style="width:72%"></div></div>
+                  <span class="text-xs text-muted">72%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-header">
+            <div class="section-title">Recent Announcements</div>
+            <span class="see-all" onclick="showPage('events', document.querySelector('[onclick*=events]'))">See all</span>
+          </div>
+          <div class="announce-item">
+            <div class="announce-icon yellow"><svg viewBox="0 0 24 24" fill="none" stroke="#C07800" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg></div>
+            <div>
+              <div class="announce-title">Water Maintenance — Block A</div>
+              <div class="announce-meta">Today 9:00 AM · 4 hours expected</div>
+            </div>
+          </div>
+          <div class="announce-item">
+            <div class="announce-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="#009B7A" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg></div>
+            <div>
+              <div class="announce-title">Social Night — Friday June 6</div>
+              <div class="announce-meta">Common Room · 7:00 PM onwards</div>
+            </div>
+          </div>
+          <div class="announce-item">
+            <div class="announce-icon navy"><svg viewBox="0 0 24 24" fill="none" stroke="#2C4D6E" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+            <div>
+              <div class="announce-title">Room Inspection — All Blocks</div>
+              <div class="announce-meta">June 10 · Management</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-header">
+            <div class="section-title">Quick Actions</div>
+          </div>
+          <div class="grid-2" style="gap:10px;">
+            <button class="btn btn-primary w-full" onclick="showPage('marketplace', document.querySelector('[onclick*=marketplace]'))">🛒 Order Food</button>
+            <button class="btn btn-outline w-full" onclick="showPage('maintenance', document.querySelector('[onclick*=maintenance]'))">🔧 Report Issue</button>
+            <button class="btn btn-outline w-full" onclick="showToast('Electricity credited: GHc 50')">⚡ Buy Electricity</button>
+            <button class="btn btn-accent w-full" onclick="showPage('events', document.querySelector('[onclick*=events]'))">📅 View Events</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-header">
+            <div class="section-title">Notifications</div>
+            <span class="see-all">3 new</span>
+          </div>
+          <div class="notif-item">
+            <div class="notif-dot-sm red"></div>
+            <div>
+              <div class="notif-text">Your maintenance request <strong>#MR-041</strong> has been assigned to a technician</div>
+              <div class="notif-time">2 hours ago</div>
+            </div>
+          </div>
+          <div class="notif-item">
+            <div class="notif-dot-sm yellow"></div>
+            <div>
+              <div class="notif-text">Payment reminder: GHc 850 due on June 14, 2026</div>
+              <div class="notif-time">Yesterday</div>
+            </div>
+          </div>
+          <div class="notif-item">
+            <div class="notif-dot-sm green"></div>
+            <div>
+              <div class="notif-text">Your Jollof order from Maame's Kitchen has been delivered 🎉</div>
+              <div class="notif-time">June 1</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- === MARKETPLACE === -->
+    <div class="page" id="page-marketplace">
+      <div class="section-header mb-4">
+        <div>
+          <div class="section-title">Food & Marketplace</div>
+          <div class="text-sm text-muted mt-1">Order food, essentials & services from trusted vendors</div>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-outline btn-sm">🛵 Track Order</button>
+          <button class="btn btn-primary btn-sm">🛒 Cart (2)</button>
+        </div>
+      </div>
+
+      <div class="flex gap-2 mb-4">
+        <button class="badge green" style="padding:6px 14px; cursor:pointer;">🍽 Food</button>
+        <button class="badge gray" style="padding:6px 14px; cursor:pointer;">🛒 Essentials</button>
+        <button class="badge gray" style="padding:6px 14px; cursor:pointer;">⚡ Utilities</button>
+        <button class="badge gray" style="padding:6px 14px; cursor:pointer;">🧺 Laundry</button>
+      </div>
+
+      <div class="food-grid">
+        <div class="food-card">
+          <div class="food-img jollof">🍛</div>
+          <div class="food-info">
+            <div class="food-name">Jollof Rice + Chicken</div>
+            <div class="food-vendor">Maame's Kitchen · 15 min</div>
+            <div class="food-footer">
+              <div class="food-price">GHc 25</div>
+              <button class="add-btn" onclick="showToast('Added to cart: Jollof Rice')">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="food-card">
+          <div class="food-img waakye">🫘</div>
+          <div class="food-info">
+            <div class="food-name">Waakye Special</div>
+            <div class="food-vendor">Auntie Ama · 10 min</div>
+            <div class="food-footer">
+              <div class="food-price">GHc 20</div>
+              <button class="add-btn" onclick="showToast('Added to cart: Waakye Special')">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="food-card">
+          <div class="food-img banku">🫓</div>
+          <div class="food-info">
+            <div class="food-name">Banku + Tilapia</div>
+            <div class="food-vendor">Harbour Kitchen · 20 min</div>
+            <div class="food-footer">
+              <div class="food-price">GHc 35</div>
+              <button class="add-btn" onclick="showToast('Added to cart: Banku + Tilapia')">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="food-card">
+          <div class="food-img rice">🍚</div>
+          <div class="food-info">
+            <div class="food-name">Fried Rice + Beef</div>
+            <div class="food-vendor">Maame's Kitchen · 15 min</div>
+            <div class="food-footer">
+              <div class="food-price">GHc 28</div>
+              <button class="add-btn" onclick="showToast('Added to cart: Fried Rice')">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="food-card">
+          <div class="food-img kenkey">🌽</div>
+          <div class="food-info">
+            <div class="food-name">Kenkey + Fish</div>
+            <div class="food-vendor">Homestyle Corner · 8 min</div>
+            <div class="food-footer">
+              <div class="food-price">GHc 18</div>
+              <button class="add-btn" onclick="showToast('Added to cart: Kenkey + Fish')">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="food-card">
+          <div class="food-img fried">🍗</div>
+          <div class="food-info">
+            <div class="food-name">Fried Yam + Chicken</div>
+            <div class="food-vendor">Auntie Ama · 12 min</div>
+            <div class="food-footer">
+              <div class="food-price">GHc 22</div>
+              <button class="add-btn" onclick="showToast('Added to cart: Fried Yam + Chicken')">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- === EVENTS === -->
+    <div class="page" id="page-events">
+      <div class="section-header mb-4">
+        <div>
+          <div class="section-title">Events & Community</div>
+          <div class="text-sm text-muted mt-1">Stay connected to hostel life</div>
+        </div>
+        <button class="btn btn-primary btn-sm">+ RSVP</button>
+      </div>
+      <div class="grid-2" style="gap:14px; margin-bottom:20px;">
+        <div class="event-card" onclick="showToast('RSVP confirmed for Social Night!')">
+          <div class="event-date-box"><div class="event-day">06</div><div class="event-month">Jun</div></div>
+          <div>
+            <div class="event-title">Social Night & Game Room</div>
+            <div class="event-loc">📍 Common Room, Ground Floor</div>
+            <div class="event-time">7:00 PM — 10:00 PM</div>
+          </div>
+          <span class="badge green" style="margin-left:auto;flex-shrink:0;">RSVP</span>
+        </div>
+        <div class="event-card" onclick="showToast('RSVP confirmed for Fellowship!')">
+          <div class="event-date-box"><div class="event-day">08</div><div class="event-month">Jun</div></div>
+          <div>
+            <div class="event-title">Sunday Fellowship Meeting</div>
+            <div class="event-loc">📍 Study Hall, Block C</div>
+            <div class="event-time">9:00 AM — 11:00 AM</div>
+          </div>
+          <span class="badge blue" style="margin-left:auto;flex-shrink:0;">Free</span>
+        </div>
+        <div class="event-card" onclick="showToast('Reminder set for Room Inspection!')">
+          <div class="event-date-box" style="background:var(--warn);"><div class="event-day">10</div><div class="event-month">Jun</div></div>
+          <div>
+            <div class="event-title">Room Inspection — All Blocks</div>
+            <div class="event-loc">📍 All Rooms · Management</div>
+            <div class="event-time">10:00 AM — 3:00 PM</div>
+          </div>
+          <span class="badge yellow" style="margin-left:auto;flex-shrink:0;">Mandatory</span>
+        </div>
+        <div class="event-card" onclick="showToast('RSVP confirmed for Coding Workshop!')">
+          <div class="event-date-box"><div class="event-day">14</div><div class="event-month">Jun</div></div>
+          <div>
+            <div class="event-title">Coding Workshop — Web Dev</div>
+            <div class="event-loc">📍 Computer Lab, Block A</div>
+            <div class="event-time">2:00 PM — 5:00 PM</div>
+          </div>
+          <span class="badge green" style="margin-left:auto;flex-shrink:0;">RSVP</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title" style="margin-bottom:14px;">📣 Hostel Notices</div>
+        <div class="announce-item">
+          <div class="announce-icon yellow"><svg viewBox="0 0 24 24" fill="none" stroke="#C07800" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div>
+          <div>
+            <div class="announce-title">Water Supply Maintenance — Block A (Today)</div>
+            <div class="announce-meta">June 2 · 9:00 AM – 1:00 PM. Block A residents should store water.</div>
+          </div>
+        </div>
+        <div class="announce-item">
+          <div class="announce-icon navy"><svg viewBox="0 0 24 24" fill="none" stroke="#2C4D6E" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+          <div>
+            <div class="announce-title">New Visitor Policy — Effective June 7</div>
+            <div class="announce-meta">All visitors must be registered at the front desk before 8:00 PM.</div>
+          </div>
+        </div>
+        <div class="announce-item">
+          <div class="announce-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="#009B7A" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div>
+            <div class="announce-title">New Vendor: Harbour Kitchen now on HostelHub</div>
+            <div class="announce-meta">Order fresh seafood and local dishes from the Marketplace.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- === MAINTENANCE === -->
+    <div class="page" id="page-maintenance">
+      <div class="section-header mb-4">
+        <div>
+          <div class="section-title">Maintenance & Complaints</div>
+          <div class="text-sm text-muted mt-1">Submit and track all your hostel issues</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="document.getElementById('new-req-form').scrollIntoView({behavior:'smooth'})">+ New Request</button>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="section-title" style="margin-bottom:14px;">My Requests</div>
+          <div class="request-item">
+            <div class="req-number">#041</div>
+            <div class="req-info">
+              <div class="req-title">Ceiling fan making noise</div>
+              <div class="req-meta">Room 204 · Submitted June 1</div>
+            </div>
+            <span class="badge yellow">In Progress</span>
+          </div>
+          <div class="request-item">
+            <div class="req-number">#038</div>
+            <div class="req-info">
+              <div class="req-title">Bathroom door latch broken</div>
+              <div class="req-meta">Room 204 · Submitted May 28</div>
+            </div>
+            <span class="badge blue">Assigned</span>
+          </div>
+          <div class="request-item">
+            <div class="req-number">#031</div>
+            <div class="req-info">
+              <div class="req-title">Window hinge replacement</div>
+              <div class="req-meta">Room 204 · May 15</div>
+            </div>
+            <span class="badge green">Resolved</span>
+          </div>
+        </div>
+
+        <div class="card" id="new-req-form">
+          <div class="section-title" style="margin-bottom:16px;">Submit New Request</div>
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select class="form-select">
+              <option>Electrical</option>
+              <option>Plumbing</option>
+              <option>Furniture</option>
+              <option>Structural</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Issue Title</label>
+            <input type="text" class="form-input" placeholder="Brief description of the issue" id="req-title-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Details</label>
+            <textarea class="form-textarea" rows="3" placeholder="Describe the issue in detail…" id="req-detail-input"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Priority</label>
+            <select class="form-select">
+              <option>Low</option>
+              <option selected>Normal</option>
+              <option>Urgent</option>
+            </select>
+          </div>
+          <button class="btn btn-accent w-full" onclick="submitRequest()">Submit Request →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- === ADMIN HOME === -->
+    <div class="page" id="page-admin-home">
+      <div class="stat-grid">
+        <div class="card">
+          <div class="card-title">Total Residents</div>
+          <div class="card-value">248</div>
+          <div class="card-delta up">↑ 8 this week</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Occupancy Rate</div>
+          <div class="card-value">87%</div>
+          <div class="card-delta up">↑ 3% vs last month</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Revenue (June)</div>
+          <div class="card-value">GHc 24K</div>
+          <div class="card-delta up">↑ GHc 3.2K ahead</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Open Requests</div>
+          <div class="card-value">14</div>
+          <div class="card-delta warn">3 urgent</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="section-header"><div class="section-title">Monthly Revenue</div><span class="badge green">+18% YoY</span></div>
+          <div class="bar-chart">
+            <div class="bar-wrap"><div class="bar navy" style="height:55%;"></div><div class="bar-label">Jan</div></div>
+            <div class="bar-wrap"><div class="bar navy" style="height:62%;"></div><div class="bar-label">Feb</div></div>
+            <div class="bar-wrap"><div class="bar navy" style="height:70%;"></div><div class="bar-label">Mar</div></div>
+            <div class="bar-wrap"><div class="bar navy" style="height:80%;"></div><div class="bar-label">Apr</div></div>
+            <div class="bar-wrap"><div class="bar navy" style="height:75%;"></div><div class="bar-label">May</div></div>
+            <div class="bar-wrap"><div class="bar accent" style="height:90%;"></div><div class="bar-label">Jun</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-header"><div class="section-title">Occupancy by Block</div></div>
+          <div style="display:flex;flex-direction:column;gap:14px;margin-top:4px;">
+            <div>
+              <div class="flex items-center gap-2" style="justify-content:space-between;margin-bottom:5px;">
+                <span class="text-sm font-med">Block A</span><span class="text-sm text-muted">62/70</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill green" style="width:88%;"></div></div>
+            </div>
+            <div>
+              <div class="flex items-center gap-2" style="justify-content:space-between;margin-bottom:5px;">
+                <span class="text-sm font-med">Block B</span><span class="text-sm text-muted">58/70</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill navy" style="width:83%;"></div></div>
+            </div>
+            <div>
+              <div class="flex items-center gap-2" style="justify-content:space-between;margin-bottom:5px;">
+                <span class="text-sm font-med">Block C</span><span class="text-sm text-muted">55/70</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill warn" style="width:78%;"></div></div>
+            </div>
+            <div>
+              <div class="flex items-center gap-2" style="justify-content:space-between;margin-bottom:5px;">
+                <span class="text-sm font-med">Block D</span><span class="text-sm text-muted">73/80</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill green" style="width:91%;"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card col-span-2">
+          <div class="section-header"><div class="section-title">Recent Maintenance Requests</div><span class="see-all" onclick="showPage('rooms', document.querySelector('[onclick*=rooms]'))">Manage Rooms</span></div>
+          <table class="data-table">
+            <thead><tr><th>#</th><th>Room</th><th>Issue</th><th>Student</th><th>Priority</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td>#041</td><td>204 B</td><td>Ceiling fan noise</td><td>Kwame Asante</td><td><span class="badge yellow">Normal</span></td><td><span class="badge blue">In Progress</span></td><td><button class="btn btn-outline btn-sm" onclick="showToast('Request #041 marked resolved')">Resolve</button></td></tr>
+              <tr><td>#040</td><td>116 A</td><td>Broken window latch</td><td>Ama Serwah</td><td><span class="badge red">Urgent</span></td><td><span class="badge yellow">Assigned</span></td><td><button class="btn btn-outline btn-sm" onclick="showToast('Request #040 marked resolved')">Resolve</button></td></tr>
+              <tr><td>#039</td><td>312 C</td><td>Leaking pipe</td><td>Kofi Mensah</td><td><span class="badge red">Urgent</span></td><td><span class="badge blue">In Progress</span></td><td><button class="btn btn-outline btn-sm" onclick="showToast('Request #039 marked resolved')">Resolve</button></td></tr>
+              <tr><td>#038</td><td>204 B</td><td>Bathroom door latch</td><td>Kwame Asante</td><td><span class="badge yellow">Normal</span></td><td><span class="badge blue">Assigned</span></td><td><button class="btn btn-outline btn-sm" onclick="showToast('Request #038 marked resolved')">Resolve</button></td></tr>
+              <tr><td>#037</td><td>201 D</td><td>Electrical socket fault</td><td>Abena Owusu</td><td><span class="badge red">Urgent</span></td><td><span class="badge gray">Pending</span></td><td><button class="btn btn-accent btn-sm" onclick="showToast('Assigned to technician')">Assign</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- === STUDENTS === -->
+    <div class="page" id="page-students">
+      <div class="section-header mb-4">
+        <div>
+          <div class="section-title">Student Management</div>
+          <div class="text-sm text-muted mt-1">248 active residents across 4 blocks</div>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-outline btn-sm">Export</button>
+          <button class="btn btn-primary btn-sm" onclick="showToast('Add student form opened')">+ Add Student</button>
+        </div>
+      </div>
+      <div class="card">
+        <table class="data-table">
+          <thead><tr><th>Student</th><th>Room</th><th>Block</th><th>Program</th><th>Fee Status</th><th>Subscription</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td><div class="flex items-center gap-2"><div class="avatar student" style="width:28px;height:28px;font-size:11px;">KA</div>Kwame Asante</div></td><td>204</td><td>B</td><td>Computer Science</td><td><span class="badge yellow">Partial</span></td><td><span class="badge green">Active</span></td><td><button class="btn btn-outline btn-sm" onclick="showToast('Kwame Asante profile opened')">View</button></td></tr>
+            <tr><td><div class="flex items-center gap-2"><div class="avatar" style="width:28px;height:28px;font-size:11px;background:rgba(29,99,226,0.1);color:#1D63E2;">AS</div>Ama Serwah</div></td><td>116</td><td>A</td><td>Business Admin</td><td><span class="badge green">Paid</span></td><td><span class="badge green">Active</span></td><td><button class="btn btn-outline btn-sm" onclick="showToast('Ama Serwah profile opened')">View</button></td></tr>
+            <tr><td><div class="flex items-center gap-2"><div class="avatar" style="width:28px;height:28px;font-size:11px;background:rgba(245,166,35,0.15);color:#C07800;">KM</div>Kofi Mensah</div></td><td>312</td><td>C</td><td>Engineering</td><td><span class="badge red">Overdue</span></td><td><span class="badge green">Active</span></td><td><button class="btn btn-outline btn-sm" onclick="showToast('Kofi Mensah profile opened')">View</button></td></tr>
+            <tr><td><div class="flex items-center gap-2"><div class="avatar" style="width:28px;height:28px;font-size:11px;background:rgba(0,196,154,0.12);color:#009B7A;">AO</div>Abena Owusu</div></td><td>201</td><td>D</td><td>Medicine</td><td><span class="badge green">Paid</span></td><td><span class="badge green">Active</span></td><td><button class="btn btn-outline btn-sm" onclick="showToast('Abena Owusu profile opened')">View</button></td></tr>
+            <tr><td><div class="flex items-center gap-2"><div class="avatar" style="width:28px;height:28px;font-size:11px;background:rgba(232,81,74,0.1);color:#E8514A;">YD</div>Yaa Darko</div></td><td>108</td><td>A</td><td>Law</td><td><span class="badge yellow">Partial</span></td><td><span class="badge gray">Expired</span></td><td><button class="btn btn-outline btn-sm" onclick="showToast('Yaa Darko profile opened')">View</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- === ROOMS === -->
+    <div class="page" id="page-rooms">
+      <div class="section-header mb-4">
+        <div>
+          <div class="section-title">Room Management</div>
+          <div class="text-sm text-muted mt-1">Block B · 70 rooms · 58 occupied</div>
+        </div>
+        <div class="flex gap-2">
+          <select class="form-select" style="width:auto;font-size:12px;padding:6px 10px;" onchange="showToast('Viewing '+this.value)">
+            <option>Block B</option><option>Block A</option><option>Block C</option><option>Block D</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(0,196,154,0.5);"></div>Available (12)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(13,33,55,0.2);"></div>Occupied (54)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(245,166,35,0.4);"></div>Maintenance (4)</div>
+      </div>
+
+      <div class="card">
+        <div class="room-grid" id="room-grid"></div>
+      </div>
+
+      <div class="grid-2 mt-4">
+        <div class="card">
+          <div class="section-title" style="margin-bottom:14px;">Room Details</div>
+          <div id="room-detail">
+            <div class="text-sm text-muted">Click on a room above to see details</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-title" style="margin-bottom:14px;">Quick Assign</div>
+          <div class="form-group">
+            <label class="form-label">Student Name</label>
+            <input type="text" class="form-input" placeholder="Search student...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Room Number</label>
+            <input type="text" class="form-input" placeholder="e.g. 204">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Duration</label>
+            <select class="form-select">
+              <option>1 Academic Year</option>
+              <option>1 Semester</option>
+              <option>Custom</option>
+            </select>
+          </div>
+          <button class="btn btn-accent w-full" onclick="showToast('Room assigned successfully!')">Assign Room →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- === COMMUNICATIONS === -->
+    <div class="page" id="page-comms">
+      <div class="section-header mb-4">
+        <div>
+          <div class="section-title">Communications Dashboard</div>
+          <div class="text-sm text-muted mt-1">Broadcast announcements and manage all hostel communications</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="section-title" style="margin-bottom:16px;">New Broadcast</div>
+          <div class="form-group">
+            <label class="form-label">Target Audience</label>
+            <select class="form-select">
+              <option>All Residents (248)</option>
+              <option>Block A Only</option>
+              <option>Block B Only</option>
+              <option>Overdue Payments</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Message Type</label>
+            <select class="form-select">
+              <option>📢 General Announcement</option>
+              <option>⚠ Emergency Alert</option>
+              <option>📅 Event Notice</option>
+              <option>💰 Payment Reminder</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Subject</label>
+            <input type="text" class="form-input" placeholder="Message subject" id="msg-subject">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Message</label>
+            <textarea class="form-textarea" rows="4" placeholder="Write your announcement here…" id="msg-body"></textarea>
+          </div>
+          <button class="btn btn-accent w-full" onclick="sendBroadcast()">Send to All Residents →</button>
+        </div>
+
+        <div class="card">
+          <div class="section-header"><div class="section-title">Recent Broadcasts</div><span class="badge blue">5 this week</span></div>
+          <div class="announce-item">
+            <div class="announce-icon yellow"><svg viewBox="0 0 24 24" fill="none" stroke="#C07800" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div>
+            <div style="flex:1;">
+              <div class="announce-title">Water Maintenance — Block A</div>
+              <div class="announce-meta">Sent to: Block A (62 residents) · 2 hours ago</div>
+              <div class="flex gap-2 mt-2"><span class="badge green">248 delivered</span><span class="badge gray">61 read</span></div>
+            </div>
+          </div>
+          <div class="announce-item">
+            <div class="announce-icon navy"><svg viewBox="0 0 24 24" fill="none" stroke="#2C4D6E" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/></svg></div>
+            <div style="flex:1;">
+              <div class="announce-title">Social Night — June 6</div>
+              <div class="announce-meta">Sent to: All Residents · Yesterday</div>
+              <div class="flex gap-2 mt-2"><span class="badge green">248 delivered</span><span class="badge gray">194 read</span></div>
+            </div>
+          </div>
+          <div class="announce-item">
+            <div class="announce-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="#009B7A" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+            <div style="flex:1;">
+              <div class="announce-title">Payment Reminder — June Deadline</div>
+              <div class="announce-meta">Sent to: 47 with balances · June 1</div>
+              <div class="flex gap-2 mt-2"><span class="badge yellow">47 delivered</span><span class="badge gray">38 read</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- === FINANCE === -->
+    <div class="page" id="page-finance">
+      <div class="section-header mb-4">
+        <div>
+          <div class="section-title">Financial & Utility Overview</div>
+          <div class="text-sm text-muted mt-1">Track revenue, subscriptions, and transactions</div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="showToast('Report exported!')">Export Report</button>
+      </div>
+
+      <div class="stat-grid" style="margin-bottom:24px;">
+        <div class="card">
+          <div class="card-title">Total Revenue (2026)</div>
+          <div class="card-value">GHc 142K</div>
+          <div class="card-delta up">↑ 22% vs 2025</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Subscriptions Active</div>
+          <div class="card-value">231</div>
+          <div class="card-delta up">93% of residents</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Pending Payments</div>
+          <div class="card-value">GHc 18.4K</div>
+          <div class="card-delta warn">47 students</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Marketplace Revenue</div>
+          <div class="card-value">GHc 4.2K</div>
+          <div class="card-delta up">Commissions & fees</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-header"><div class="section-title">Recent Transactions</div><span class="see-all">View All</span></div>
+        <table class="data-table">
+          <thead><tr><th>Ref</th><th>Student</th><th>Type</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td style="font-family:monospace;font-size:12px;">#TXN-2891</td><td>Kwame Asante</td><td>Subscription Fee</td><td style="font-weight:600;">GHc 320</td><td>June 1, 2026</td><td><span class="badge green">Paid</span></td></tr>
+            <tr><td style="font-family:monospace;font-size:12px;">#TXN-2890</td><td>Ama Serwah</td><td>Room Fee Q2</td><td style="font-weight:600;">GHc 750</td><td>June 1, 2026</td><td><span class="badge green">Paid</span></td></tr>
+            <tr><td style="font-family:monospace;font-size:12px;">#TXN-2889</td><td>Abena Owusu</td><td>Electricity Credit</td><td style="font-weight:600;">GHc 80</td><td>May 30, 2026</td><td><span class="badge green">Paid</span></td></tr>
+            <tr><td style="font-family:monospace;font-size:12px;">#TXN-2888</td><td>Kofi Mensah</td><td>Room Fee Q2</td><td style="font-weight:600;">GHc 750</td><td>May 30, 2026</td><td><span class="badge red">Overdue</span></td></tr>
+            <tr><td style="font-family:monospace;font-size:12px;">#TXN-2887</td><td>Yaa Darko</td><td>Room Fee Q2</td><td style="font-weight:600;">GHc 750</td><td>May 28, 2026</td><td><span class="badge yellow">Partial</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+  <span id="toast-msg">Done!</span>
+</div>
+
+<script>
+let isAdmin = false;
+
+function showPage(id, clickedEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  const titles = {
+    'student-home':'Student Dashboard','marketplace':'Food & Marketplace','events':'Events & Community',
+    'maintenance':'Maintenance','admin-home':'Management Overview','students':'Student Management',
+    'rooms':'Room Management','comms':'Communications','finance':'Finance & Utilities'
+  };
+  document.getElementById('page-title').textContent = titles[id] || id;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (clickedEl) clickedEl.classList.add('active');
+}
+
+function switchToAdmin() {
+  isAdmin = true;
+  document.getElementById('student-nav').style.display = 'none';
+  document.getElementById('admin-nav').style.display = 'block';
+  document.getElementById('user-card-student').style.display = 'none';
+  document.getElementById('user-card-admin').style.display = 'flex';
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-admin-home').classList.add('active');
+  document.getElementById('page-title').textContent = 'Management Overview';
+  document.querySelectorAll('#admin-nav .nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelector('#admin-nav .nav-item').classList.add('active');
+  showToast('Switched to Admin View');
+}
+
+function switchToStudent() {
+  isAdmin = false;
+  document.getElementById('admin-nav').style.display = 'none';
+  document.getElementById('student-nav').style.display = 'block';
+  document.getElementById('user-card-admin').style.display = 'none';
+  document.getElementById('user-card-student').style.display = 'flex';
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-student-home').classList.add('active');
+  document.getElementById('page-title').textContent = 'Student Dashboard';
+  document.querySelectorAll('#student-nav .nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelector('#student-nav .nav-item').classList.add('active');
+  showToast('Switched to Student View');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.style.display = 'flex';
+  clearTimeout(t._to);
+  t._to = setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+
+function submitRequest() {
+  const t = document.getElementById('req-title-input').value;
+  if (!t.trim()) { showToast('Please enter a title for your request'); return; }
+  showToast('Request submitted! #MR-042 created');
+  document.getElementById('req-title-input').value = '';
+  document.getElementById('req-detail-input').value = '';
+}
+
+function sendBroadcast() {
+  const s = document.getElementById('msg-subject').value;
+  if (!s.trim()) { showToast('Please enter a subject'); return; }
+  showToast('Broadcast sent to all residents!');
+  document.getElementById('msg-subject').value = '';
+  document.getElementById('msg-body').value = '';
+}
+
+// Build room grid
+function buildRooms() {
+  const grid = document.getElementById('room-grid');
+  if (!grid) return;
+  const statuses = ['occupied','occupied','available','occupied','occupied','maintenance',
+                    'occupied','occupied','occupied','available','occupied','occupied',
+                    'maintenance','occupied','occupied','occupied','available','occupied',
+                    'occupied','available','occupied','occupied','occupied','maintenance',
+                    'occupied','occupied','available','occupied','occupied','occupied',
+                    'occupied','available','occupied','occupied','maintenance','occupied'];
+  const types = ['Single','Twin','Single','Twin','Single','—','Single','Twin','Twin','Single','Single','Twin',
+                 '—','Single','Twin','Single','Twin','Single','Single','Twin','Single','Twin','Single','—',
+                 'Twin','Single','Single','Twin','Single','Single','Twin','Twin','Single','Single','—','Twin'];
+  grid.innerHTML = '';
+  for (let i = 0; i < 36; i++) {
+    const num = 201 + i;
+    const s = statuses[i];
+    const t = types[i];
+    const div = document.createElement('div');
+    div.className = 'room-cell ' + s;
+    div.innerHTML = `<div class="room-num">${num}</div><div class="room-type">${t}</div>`;
+    div.onclick = () => {
+      document.querySelectorAll('.room-cell').forEach(r => r.classList.remove('selected'));
+      div.classList.add('selected');
+      const detail = document.getElementById('room-detail');
+      const student = s === 'occupied' ? ['Kwame Asante','Ama Serwah','Kofi Mensah','Abena Owusu','Yaa Darko','Nana Boateng'][i%6] : null;
+      detail.innerHTML = `
+        <div class="text-sm font-med" style="margin-bottom:12px;">Room ${num} — Block B</div>
+        <div class="flex gap-2 mb-2"><span class="badge ${s==='available'?'green':s==='maintenance'?'yellow':'blue'}">${s.charAt(0).toUpperCase()+s.slice(1)}</span><span class="badge gray">${t}</span></div>
+        ${student ? `<div class="mt-2"><div class="text-xs text-muted">Current Resident</div><div class="text-sm font-med mt-1">${student}</div></div>` : `<div class="text-xs text-muted mt-2">${s==='available'?'Available for booking':s==='maintenance'?'Under maintenance':'—'}</div>`}
+        <div class="mt-2"><div class="text-xs text-muted">Floor</div><div class="text-sm mt-1">${Math.ceil((i+1)/12) + 1}nd Floor</div></div>
+      `;
+    };
+    grid.appendChild(div);
+  }
+}
+buildRooms();
+</script>
+</body>
+</html>
